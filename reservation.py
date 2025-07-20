@@ -1,41 +1,47 @@
-def make_reservation(name, time, people):
-    if people <= 0:
-        return "Error: Number of people must be positive"
-    if time < 12 or time > 22:
-        return "Error: Time must be between 12 and 22"
-    print(f"Reservation for {name} at {time}:00 for {people} people")
-    return "Reservation successful"
+class ReservationSystem:
+    """Simple reservation management for a restaurant."""
+
+    def __init__(self):
+        # Store each booking as [name, time, people]
+        self.bookings = []
+
+    def make_reservation(self, name, time, people):
+        """Create a reservation if the request is valid and there is space."""
+        if people <= 0:
+            return "Error: Number of people must be positive"
+        if time < 12 or time > 22:
+            return "Error: Time must be between 12 and 22"
+        if not self.check_availability(time, people):
+            return "No availability"
+
+        self.bookings.append([name, time, people])
+        return f"Reservation for {name} at {time}:00 for {people} people added"
+
+    def check_availability(self, time, people):
+        """Return True if the requested reservation fits into the schedule."""
+        total_people = sum(b[2] for b in self.bookings if b[1] == time)
+        return total_people + people <= 20
+
+    def cancel(self, name):
+        """Cancel a reservation by client name."""
+        for i, booking in enumerate(self.bookings):
+            if booking[0] == name:
+                self.bookings.pop(i)
+                return "Reservation cancelled"
+        return "Reservation not found"
 
 
-def check_availability(time, people, bookings):
-    total_people = 0
-    for b in bookings:
-        if b[1] == time:
-            total_people += b[2]
-    if total_people + people > 20:
-        return False
-    return True
+def main():
+    """Demonstrates basic usage of the ReservationSystem class."""
+    system = ReservationSystem()
+
+    print(system.make_reservation("John", 18, 4))
+    print(system.make_reservation("Alice", 18, 17))
+
+    print(system.bookings)
+    print(system.cancel("John"))
+    print(system.bookings)
 
 
-def cancel(name, bookings):
-    for i in range(len(bookings)):
-        if bookings[i][0] == name:
-            bookings.pop(i)
-            return "Reservation cancelled"
-    return "Reservation not found"
-
-
-# Uso de las funciones
-bookings = []
-
-print(make_reservation("John", 18, 4))
-if check_availability(18, 4, bookings):
-    bookings.append(["John", 18, 4])
-
-print(make_reservation("Alice", 18, 17))
-if check_availability(18, 17, bookings):
-    bookings.append(["Alice", 18, 17])
-
-print(bookings)
-print(cancel("John", bookings))
-print(bookings)
+if __name__ == "__main__":
+    main()
