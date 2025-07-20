@@ -19,6 +19,14 @@ class Reservation:
     people: int
 
 
+@dataclass
+class ReservationResult:
+    """Outcome returned by ReservationSystem.make_reservation."""
+
+    success: bool
+    message: str
+
+
 class ReservationSystem:
     """Simple reservation management for a restaurant."""
 
@@ -29,20 +37,23 @@ class ReservationSystem:
         # Store each booking as Reservation instances
         self.bookings: list[Reservation] = []
 
-    def make_reservation(self, name, time, people):
+    def make_reservation(self, name, time, people) -> ReservationResult:
         """Create a reservation if the request is valid and there is space."""
         if people <= 0:
-            return "Error: Number of people must be positive"
+            return ReservationResult(False, "Error: Number of people must be positive")
         if time < self.config.open_hour or time > self.config.close_hour:
-            return (
-                f"Error: Time must be between {self.config.open_hour} "
-                f"and {self.config.close_hour}"
+            return ReservationResult(
+                False,
+                f"Error: Time must be between {self.config.open_hour} and {self.config.close_hour}",
             )
         if not self.check_availability(time, people):
-            return "No availability"
+            return ReservationResult(False, "No availability")
 
         self.bookings.append(Reservation(name, time, people))
-        return f"Reservation for {name} at {time}:00 for {people} people added"
+        return ReservationResult(
+            True,
+            f"Reservation for {name} at {time}:00 for {people} people added",
+        )
 
     def check_availability(self, time, people):
         """Return True if the requested reservation fits into the schedule."""
@@ -51,13 +62,13 @@ class ReservationSystem:
         )
         return total_people + people <= self.config.max_capacity
 
-    def cancel(self, name):
+    def cancel(self, name) -> ReservationResult:
         """Cancel a reservation by client name."""
         for i, booking in enumerate(self.bookings):
             if booking.name == name:
                 self.bookings.pop(i)
-                return "Reservation cancelled"
-        return "Reservation not found"
+                return ReservationResult(True, "Reservation cancelled")
+        return ReservationResult(False, "Reservation not found")
 
 
 def main():
@@ -65,11 +76,14 @@ def main():
     # Example of system using default configuration
     system = ReservationSystem()
 
-    print(system.make_reservation("John", 18, 4))
-    print(system.make_reservation("Alice", 18, 17))
+    result = system.make_reservation("John", 18, 4)
+    print(result.message)
+    result = system.make_reservation("Alice", 18, 17)
+    print(result.message)
 
     print(system.bookings)
-    print(system.cancel("John"))
+    result = system.cancel("John")
+    print(result.message)
     print(system.bookings)
 
 
