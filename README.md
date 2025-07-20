@@ -1,4 +1,12 @@
 # MesaMaster
+Proyecto para Tarea 4 Refactorización de la Asignatura Programación Orientada a Objetos.
+
+## Información Académica
+Universidad Nacional Experimental de Guayana
+- **Maestria:** Maestria en Tecnologías de la Información
+- **Asignatura:** Técnicas de Programación Orientada a Objetos
+- **Nombre del profesor:** Carlos Abaffy
+- **Integrantes:** Julio César Canelon y José Escalante
 
 Este proyecto ofrece un sistema sencillo de gestión de reservas para un
 restaurante. La lógica de reservas se encuentra encapsulada en la clase
