@@ -1,9 +1,21 @@
+from dataclasses import dataclass
+
+
+@dataclass
+class Reservation:
+    """Represents a single reservation."""
+
+    name: str
+    time: int
+    people: int
+
+
 class ReservationSystem:
     """Simple reservation management for a restaurant."""
 
     def __init__(self):
-        # Store each booking as [name, time, people]
-        self.bookings = []
+        # Store each booking as Reservation instances
+        self.bookings: list[Reservation] = []
 
     def make_reservation(self, name, time, people):
         """Create a reservation if the request is valid and there is space."""
@@ -14,18 +26,18 @@ class ReservationSystem:
         if not self.check_availability(time, people):
             return "No availability"
 
-        self.bookings.append([name, time, people])
+        self.bookings.append(Reservation(name, time, people))
         return f"Reservation for {name} at {time}:00 for {people} people added"
 
     def check_availability(self, time, people):
         """Return True if the requested reservation fits into the schedule."""
-        total_people = sum(b[2] for b in self.bookings if b[1] == time)
+        total_people = sum(res.people for res in self.bookings if res.time == time)
         return total_people + people <= 20
 
     def cancel(self, name):
         """Cancel a reservation by client name."""
         for i, booking in enumerate(self.bookings):
-            if booking[0] == name:
+            if booking.name == name:
                 self.bookings.pop(i)
                 return "Reservation cancelled"
         return "Reservation not found"

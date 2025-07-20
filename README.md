@@ -1,9 +1,10 @@
 # MesaMaster
 
 Este proyecto ofrece un sistema sencillo de gestión de reservas para un
-restaurante. A partir de la versión actual, la lógica de reservas se ha
-encapsulado en la clase `ReservationSystem`, lo que facilita su reutilización
-y la posibilidad de realizar pruebas unitarias.
+restaurante. La lógica de reservas se encuentra encapsulada en la clase
+`ReservationSystem` y cada reserva se modela mediante el dataclass
+`Reservation`, lo que facilita la reutilización y la posibilidad de realizar
+pruebas unitarias.
 
 ## Uso rápido
 
