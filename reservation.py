@@ -1,6 +1,22 @@
 from dataclasses import dataclass
 
 
+class ReservationError(Exception):
+    """Base class for reservation related errors."""
+
+
+class InvalidReservationError(ReservationError):
+    """Raised when a reservation request is not valid."""
+
+
+class NoAvailabilityError(ReservationError):
+    """Raised when there is no space for the requested reservation."""
+
+
+class ReservationNotFoundError(ReservationError):
+    """Raised when attempting to cancel a non-existent reservation."""
+
+
 @dataclass
 class RestaurantConfig:
     """Configuration parameters for reservation rules."""
@@ -19,12 +35,6 @@ class Reservation:
     people: int
 
 
-@dataclass
-class ReservationResult:
-    """Outcome returned by ReservationSystem.make_reservation."""
-
-    success: bool
-    message: str
 
 
 class ReservationSystem:
@@ -37,23 +47,20 @@ class ReservationSystem:
         # Store each booking as Reservation instances
         self.bookings: list[Reservation] = []
 
-    def make_reservation(self, name, time, people) -> ReservationResult:
+    def make_reservation(self, name: str, time: int, people: int) -> Reservation:
         """Create a reservation if the request is valid and there is space."""
         if people <= 0:
-            return ReservationResult(False, "Error: Number of people must be positive")
+            raise InvalidReservationError("Number of people must be positive")
         if time < self.config.open_hour or time > self.config.close_hour:
-            return ReservationResult(
-                False,
-                f"Error: Time must be between {self.config.open_hour} and {self.config.close_hour}",
+            raise InvalidReservationError(
+                f"Time must be between {self.config.open_hour} and {self.config.close_hour}"
             )
         if not self.check_availability(time, people):
-            return ReservationResult(False, "No availability")
+            raise NoAvailabilityError("No availability")
 
-        self.bookings.append(Reservation(name, time, people))
-        return ReservationResult(
-            True,
-            f"Reservation for {name} at {time}:00 for {people} people added",
-        )
+        reservation = Reservation(name, time, people)
+        self.bookings.append(reservation)
+        return reservation
 
     def check_availability(self, time, people):
         """Return True if the requested reservation fits into the schedule."""
@@ -62,28 +69,33 @@ class ReservationSystem:
         )
         return total_people + people <= self.config.max_capacity
 
-    def cancel(self, name) -> ReservationResult:
+    def cancel(self, name: str) -> Reservation:
         """Cancel a reservation by client name."""
         for i, booking in enumerate(self.bookings):
             if booking.name == name:
-                self.bookings.pop(i)
-                return ReservationResult(True, "Reservation cancelled")
-        return ReservationResult(False, "Reservation not found")
+                return self.bookings.pop(i)
+        raise ReservationNotFoundError("Reservation not found")
 
 
 def main():
     """Demonstrates basic usage of the ReservationSystem class."""
-    # Example of system using default configuration
     system = ReservationSystem()
 
-    result = system.make_reservation("John", 18, 4)
-    print(result.message)
-    result = system.make_reservation("Alice", 18, 17)
-    print(result.message)
+    try:
+        res = system.make_reservation("John", 18, 4)
+        print(f"Added reservation: {res}")
+        res = system.make_reservation("Alice", 18, 17)
+        print(f"Added reservation: {res}")
+    except ReservationError as exc:
+        print(f"Reservation error: {exc}")
 
     print(system.bookings)
-    result = system.cancel("John")
-    print(result.message)
+    try:
+        cancelled = system.cancel("John")
+        print(f"Cancelled reservation for {cancelled.name}")
+    except ReservationError as exc:
+        print(f"Cancellation error: {exc}")
+
     print(system.bookings)
 
 
