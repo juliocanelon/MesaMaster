@@ -2,6 +2,15 @@ from dataclasses import dataclass
 
 
 @dataclass
+class RestaurantConfig:
+    """Configuration parameters for reservation rules."""
+
+    open_hour: int = 12
+    close_hour: int = 22
+    max_capacity: int = 20
+
+
+@dataclass
 class Reservation:
     """Represents a single reservation."""
 
@@ -13,7 +22,10 @@ class Reservation:
 class ReservationSystem:
     """Simple reservation management for a restaurant."""
 
-    def __init__(self):
+    def __init__(self, config: RestaurantConfig | None = None):
+        """Create a new reservation system with the given configuration."""
+        # Allow custom configuration; fallback to defaults if none provided.
+        self.config: RestaurantConfig = config or RestaurantConfig()
         # Store each booking as Reservation instances
         self.bookings: list[Reservation] = []
 
@@ -21,8 +33,11 @@ class ReservationSystem:
         """Create a reservation if the request is valid and there is space."""
         if people <= 0:
             return "Error: Number of people must be positive"
-        if time < 12 or time > 22:
-            return "Error: Time must be between 12 and 22"
+        if time < self.config.open_hour or time > self.config.close_hour:
+            return (
+                f"Error: Time must be between {self.config.open_hour} "
+                f"and {self.config.close_hour}"
+            )
         if not self.check_availability(time, people):
             return "No availability"
 
@@ -31,8 +46,10 @@ class ReservationSystem:
 
     def check_availability(self, time, people):
         """Return True if the requested reservation fits into the schedule."""
-        total_people = sum(res.people for res in self.bookings if res.time == time)
-        return total_people + people <= 20
+        total_people = sum(
+            res.people for res in self.bookings if res.time == time
+        )
+        return total_people + people <= self.config.max_capacity
 
     def cancel(self, name):
         """Cancel a reservation by client name."""
@@ -45,6 +62,7 @@ class ReservationSystem:
 
 def main():
     """Demonstrates basic usage of the ReservationSystem class."""
+    # Example of system using default configuration
     system = ReservationSystem()
 
     print(system.make_reservation("John", 18, 4))
